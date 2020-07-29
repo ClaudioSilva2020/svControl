@@ -40,7 +40,7 @@
 #define RESISTENCE PD1		//Resistência
 
 
-void init_machine()
+void init_machine(void)
 {
 	for (int i=0; i<3; i++)
 	{
@@ -60,6 +60,22 @@ void init_machine()
 	
 }
 
+void exc_vacuo()
+{
+	if (test_Bit(PINC, VACUOSTAT)) // testa se tem vacuo
+	{
+		set_Bit(PORTB, PUMP_VACUUM); // se não seta bomba de vácuo
+		if (~test_Bit(PINC, VACUOSTAT)) // testa dentro do if se tem vácuo
+		{
+			clr_Bit(PORTB, PUMP_VACUUM); // se sim desliga bomba
+		}
+	}
+	else
+	{
+		return 0;
+	}
+}
+
 
 int main(void)
 {
@@ -73,21 +89,44 @@ int main(void)
 	
     while (1) 
     {
-		if (test_Bit(PORTC, AND_COURSE))
+		// Em cada IF verifica qual botão foi pressionado
+		if (~test_Bit(PINC, WHIGHT_B1))
 		{
-			set_Bit(PORTD, RESISTENCE);
-			if (test_Bit(PORTC, WHIGHT_B1))
+			while(~test_Bit(PINC, WHIGHT_B1)); // aguarda o botão ser solto
+			_delay_ms(10);
+			if (~test_Bit(PINC, AND_COURSE)) //testa se o pedal foi acionado
 			{
-				_delay_ms(50);
-				if(test_Bit(PORTC, WHIGHT_B1))
-					
-			} 
+				_delay_ms(10);
+				set_Bit(PORTD, RESISTENCE); // se sim liga a resistência
+				_delay_ms(20);
+				exc_vacuo();	// inicia o processo de vácuo
+				set_Bit(PORTB, MAGN_KEY_VAC);
+				_delay_ms(20);
+				set_Bit(PORTB, MAGN_KEY_SEL);
+				
+			}
+			_delay_ms(10000); // se não aguarda 10 segundos e reinicia o processo
 			else
 			{
+				return 0;
 			}
+			
 		}
-		
-		
+		else if (~test_Bit(PINC, WHIGHT_B2))
+		{
+			while(~test_Bit(PINC, WHIGHT_B2));
+			_delay_ms(10);
+		} 
+		else if (~test_Bit(PINC, WHIGHT_B3))
+		{
+			while(~test_Bit(PINC, WHIGHT_B3));
+			_delay_ms(10);
+		} 
+		else if (~test_Bit(PINC, WHIGHT_B4))
+		{
+			while(~test_Bit(PINC, WHIGHT_B4));
+			_delay_ms(10);
+		} 
     }
 }
 

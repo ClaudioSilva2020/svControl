@@ -2,42 +2,42 @@
  * svControl.c
  * Version: 1.0
  * Created: 7/27/2020 11:46:47 PM
- * Author : Cláudio Silva
+ * Author : ClÃ¡udio Silva
  */ 
 
-//-------------------Cabeçalho do código-------------------//
+//-------------------CabeÃ§alho do cÃ³digo-------------------//
 #define F_CPU 4000000UL
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 
-//-------------------------Configurações Macros ------------------------------//
+//-------------------------ConfiguraÃ§Ãµes Macros ------------------------------//
 #define set_Bit(Reg, bit_x) (Reg|=(1<<bit_x)) //seta bit x do registrador Reg
 #define clr_Bit(Reg, bit_x) (Reg&=~(1<<bit_x)) //reseta o bit
 #define test_Bit(Reg, bit_x) (Reg&(1<<bit_x))  //testa o estado e retorna 1ou0
 #define clp_Bit(Reg, bit_x) (Reg^=(1<<bit_x))  //troca o estado logico do bit
 
-//-------------------------Diretivas de Compilação---------------------------//
+//-------------------------Diretivas de CompilaÃ§Ã£o---------------------------//
 
 //------------------Entrtadas----------------------//
-#define WHIGHT_B1 PD0  //Botão de seleção de peso 1
-#define WHIGHT_B2 PD1 //Botão de seleção de peso 2
-#define WHIGHT_B3 PD2 //Botão de seleção de peso 3
-#define WHIGHT_B4 PD3 //Botão de seleção de peso 4
+#define WHIGHT_B1 PD0  //BotÃ£o de seleÃ§Ã£o de peso 1
+#define WHIGHT_B2 PD1 //BotÃ£o de seleÃ§Ã£o de peso 2
+#define WHIGHT_B3 PD2 //BotÃ£o de seleÃ§Ã£o de peso 3
+#define WHIGHT_B4 PD3 //BotÃ£o de seleÃ§Ã£o de peso 4
 #define VACUOSTAT PD4 //Vacuostato
 #define AND_COURSE PD5  //Chave d fim de curso do pedal
 
-//--------------------Saídas-------------------------//
-#define LED_WB1 PB0     //Led de indicação Peso 1
-#define LED_WB2 PB1     //Led de indicação Peso 2
-#define LED_WB3 PB2     //Led de indicação Peso 3
-#define LED_WB4 PB3     //Led de indicação Peso 4
-#define LED_INIT PB4    //Led de indicação INICIAL
-#define PUMP_VACUUM PB5   //Contactora da bomba de vácuo
-#define MAGN_KEY_SEL PC2  //Chave magnética de SELAGEM
-#define MAGN_KEY_VAC PC1  //Chave magnética de VÁCUO
-#define RESISTENCE PC0    //Resistência
+//--------------------SaÃ­das-------------------------//
+#define LED_WB1 PB0     //Led de indicaÃ§Ã£o Peso 1
+#define LED_WB2 PB1     //Led de indicaÃ§Ã£o Peso 2
+#define LED_WB3 PB2     //Led de indicaÃ§Ã£o Peso 3
+#define LED_WB4 PB3     //Led de indicaÃ§Ã£o Peso 4
+#define LED_INIT PB4    //Led de indicaÃ§Ã£o INICIAL
+#define PUMP_VACUUM PB5   //Contactora da bomba de vÃ¡cuo
+#define MAGN_KEY_SEL PC2  //Chave magnÃ©tica de SELAGEM
+#define MAGN_KEY_VAC PC1  //Chave magnÃ©tica de VÃCUO
+#define RESISTENCE PC0    //ResistÃªncia
 
 
 void init_machine(void)
@@ -72,8 +72,8 @@ void exc_vacuo()
 {
   if (test_Bit(PIND, VACUOSTAT)) // testa se tem vacuo
   {
-    set_Bit(PORTB, PUMP_VACUUM); // se não, seta bomba de vácuo
-    while(test_Bit(PIND, VACUOSTAT)); // testa dentro do if se tem vácuo
+    set_Bit(PORTB, PUMP_VACUUM); // se nÃ£o, seta bomba de vÃ¡cuo
+    while(test_Bit(PIND, VACUOSTAT)); // testa dentro do if se tem vÃ¡cuo
     {
       clr_Bit(PORTB, PUMP_VACUUM); // se sim desliga bomba
     }
@@ -86,9 +86,9 @@ void exc_vacuo()
 
 void proc_selar(int time_sel, int time_sleep)
 {
-  set_Bit(PORTC, MAGN_KEY_VAC); // Libera dulto de vácuo
+  set_Bit(PORTC, MAGN_KEY_VAC); // Libera dulto de vÃ¡cuo
   _delay_ms(500);
-  set_Bit(PORTC, MAGN_KEY_SEL); // Avança para selar
+  set_Bit(PORTC, MAGN_KEY_SEL); // AvanÃ§a para selar
   my_delay_ms(time_sel*1000);
   clr_Bit(PORTC, RESISTENCE);
   my_delay_ms(time_sleep*1000);
@@ -100,8 +100,8 @@ int main(void)
     int option;
     option = 0;
     
-    DDRB = 0xFF; // Definindo Todos os pinos do portB como saída
-    DDRC = 0xFF; // Definindo Todos os pinos do portC como Saída
+    DDRB = 0xFF; // Definindo Todos os pinos do portB como saÃ­da
+    DDRC = 0xFF; // Definindo Todos os pinos do portC como SaÃ­da
     DDRD = 0x00; // Definindo o primeiro nyble do portD como Entrada
     PORTD = 0xFF; //PULL- UP  
     
@@ -114,7 +114,7 @@ int main(void)
     while (1) 
     {
      set_Bit(PORTB, LED_INIT);
-    // Em cada IF verifica qual botão foi pressionado
+    // Em cada IF verifica qual botÃ£o foi pressionado
     if (!test_Bit(PIND, WHIGHT_B1))
     {
       while(!test_Bit(PIND, WHIGHT_B1));
@@ -149,11 +149,11 @@ int main(void)
         set_Bit(PORTB, LED_WB1);
         if (!test_Bit(PIND, AND_COURSE)) //testa se o pedal foi acionado
         {
-          while(!test_Bit(PIND, AND_COURSE)); // aguarda o botão ser solto remover quando for valendo
+          while(!test_Bit(PIND, AND_COURSE)); // aguarda o botÃ£o ser solto remover quando for valendo
           //_delay_ms(10);
-          set_Bit(PORTC, RESISTENCE); // se sim liga a resistência
+          set_Bit(PORTC, RESISTENCE); // se sim liga a resistÃªncia
           _delay_ms(20);
-          exc_vacuo();  // inicia o processo de vácuo
+          exc_vacuo();  // inicia o processo de vÃ¡cuo
           proc_selar(20, 10 );
         
           // pisca o lede indicando fim do processo.
@@ -174,7 +174,7 @@ int main(void)
       
           /*else
           {
-            _delay_ms(10000); // se não aguarda 10 segundos e reinicia o processo
+            _delay_ms(10000); // se nÃ£o aguarda 10 segundos e reinicia o processo
             asm("JMP 0"); // Reinicia
           }*/
             
@@ -186,11 +186,11 @@ int main(void)
         set_Bit(PORTB, LED_WB2);
         if (!test_Bit(PIND, AND_COURSE)) //testa se o pedal foi acionado
         {
-          while(!test_Bit(PIND, AND_COURSE)); // aguarda o botão ser solto remover quando for valendo
+          while(!test_Bit(PIND, AND_COURSE)); // aguarda o botÃ£o ser solto remover quando for valendo
           //_delay_ms(10);
-          set_Bit(PORTC, RESISTENCE); // se sim liga a resistência
+          set_Bit(PORTC, RESISTENCE); // se sim liga a resistÃªncia
           _delay_ms(20);
-          exc_vacuo();  // inicia o processo de vácuo
+          exc_vacuo();  // inicia o processo de vÃ¡cuo
           proc_selar(5, 5 );
         
           // pisca o lede indicando fim do processo.
@@ -211,7 +211,7 @@ int main(void)
       
           /*else
           {
-            _delay_ms(10000); // se não aguarda 10 segundos e reinicia o processo
+            _delay_ms(10000); // se nÃ£o aguarda 10 segundos e reinicia o processo
             asm("JMP 0"); // Reinicia
           }
           //*/
@@ -224,11 +224,11 @@ int main(void)
         set_Bit(PORTB, LED_WB3);
         if (!test_Bit(PIND, AND_COURSE)) //testa se o pedal foi acionado
         {
-          while(!test_Bit(PIND, AND_COURSE)); // aguarda o botão ser solto remover quando for valendo
+          while(!test_Bit(PIND, AND_COURSE)); // aguarda o botÃ£o ser solto remover quando for valendo
           //_delay_ms(10);
-          set_Bit(PORTC, RESISTENCE); // se sim liga a resistência
+          set_Bit(PORTC, RESISTENCE); // se sim liga a resistÃªncia
           _delay_ms(20);
-          exc_vacuo();  // inicia o processo de vácuo
+          exc_vacuo();  // inicia o processo de vÃ¡cuo
           proc_selar(3, 3 );
         
           // pisca o lede indicando fim do processo.
@@ -249,7 +249,7 @@ int main(void)
       
          /* else
           {
-            _delay_ms(10000); // se não aguarda 10 segundos e reinicia o processo
+            _delay_ms(10000); // se nÃ£o aguarda 10 segundos e reinicia o processo
             asm("JMP 0"); // Reinicia
           }*/
         //
@@ -262,11 +262,11 @@ int main(void)
         set_Bit(PORTB, LED_WB4);
         if (!test_Bit(PIND, AND_COURSE)) //testa se o pedal foi acionado
         {
-          while(!test_Bit(PIND, AND_COURSE)); // aguarda o botão ser solto  remover quando for valendo
+          while(!test_Bit(PIND, AND_COURSE)); // aguarda o botÃ£o ser solto  remover quando for valendo
           //_delay_ms(10);
-          set_Bit(PORTC, RESISTENCE); // se sim liga a resistência
+          set_Bit(PORTC, RESISTENCE); // se sim liga a resistÃªncia
           _delay_ms(20);
-          exc_vacuo();  // inicia o processo de vácuo
+          exc_vacuo();  // inicia o processo de vÃ¡cuo
           proc_selar(2, 2 );
         
           // pisca o lede indicando fim do processo.
@@ -287,7 +287,7 @@ int main(void)
       
          /* else
           {
-            _delay_ms(10000); // se não aguarda 10 segundos e reinicia o processo
+            _delay_ms(10000); // se nÃ£o aguarda 10 segundos e reinicia o processo
             asm("JMP 0"); // Reinicia
           }*/
         //
@@ -302,4 +302,3 @@ int main(void)
     
     }
 }
-

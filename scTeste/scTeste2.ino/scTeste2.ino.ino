@@ -25,7 +25,7 @@
 #define WHIGHT_B2 PD1 //Botão de seleção de peso 2
 #define WHIGHT_B3 PD2 //Botão de seleção de peso 3
 #define WHIGHT_B4 PD3 //Botão de seleção de peso 4
-#define VACUOSTAT PD4 //Vacuostato
+#define VACUOSTAT PD7 //Vacuostato
 #define AND_COURSE PD5  //Chave d fim de curso do pedal
 
 //--------------------Saídas-------------------------//
@@ -39,15 +39,6 @@
 #define MAGN_KEY_VAC PC1  //Chave magnética de VÁCUO
 #define RESISTENCE PC0    //Resistência
 
-#define TIME_SEL  20
-#define TIME_SLEEP 10
-#define TIME_SEL2  10
-#define TIME_SLEEP2  5
-#define TIME_SEL3  8
-#define TIME_SLEEP3  4
-#define TIME_SEL4  5
-#define TIME_SLEEP4  2
-
 
 void init_machine(void)
 {
@@ -59,11 +50,11 @@ void init_machine(void)
     set_Bit(PORTB, LED_WB3);
     set_Bit(PORTB, LED_WB4);
     _delay_ms(250);
-    clr_Bit(PORTB, LED_INIT);
-    clr_Bit(PORTB, LED_WB1);
-    clr_Bit(PORTB, LED_WB2);
-    clr_Bit(PORTB, LED_WB3);
-    clr_Bit(PORTB, LED_WB4);
+    clp_Bit(PORTB, LED_INIT);
+    clp_Bit(PORTB, LED_WB1);
+    clp_Bit(PORTB, LED_WB2);
+    clp_Bit(PORTB, LED_WB3);
+    clp_Bit(PORTB, LED_WB4);
     _delay_ms(250);
   }
   
@@ -99,20 +90,19 @@ void proc_selar(int time_sel, int time_sleep)
   _delay_ms(500);
   clr_Bit(PORTC, MAGN_KEY_SEL); // Avança para selar
   my_delay_ms(time_sel*1000);
-  clr_Bit(PORTC, RESISTENCE); //desliga resistencia
+  clr_Bit(PORTC, RESISTENCE);
   my_delay_ms(time_sleep*1000);
 }
-
 void selar_key()
 {
-  for(int i=0;i<20;i++)
+  for(int i=0;i<3;i++)
   {
-    set_Bit(PORTC, MAGN_KEY_VAC);
-    _delay_ms(500);
-    clr_Bit(PORTC, MAGN_KEY_VAC); // Libera dulto de vácuo
-    _delay_ms(500);
+    set_Bit(PORTC, MAGN_KEY_SEL);
+    _delay_ms(150);
+    clr_Bit(PORTC, MAGN_KEY_SEL); // Libera dulto de vácuo
+    _delay_ms(150);
   }
-  set_Bit(PORTC, MAGN_KEY_VAC);
+  set_Bit(PORTC, MAGN_KEY_SEL);
 }
 
 int main(void)
@@ -122,11 +112,13 @@ int main(void)
     
     DDRB = 0xFF; // Definindo Todos os pinos do portB como saída
     DDRC = 0xFF; // Definindo Todos os pinos do portC como Saída
-    PORTB = 0x00;//
-    PORTC = 0x00;//
+    PORTC = 0x06;
+    PORTB = 0x00;
     DDRD = 0x00; // Definindo o primeiro nyble do portD como Entrada
     PORTD = 0xFF; //PULL- UP  
-    
+
+    selar_key();
+    set_Bit(PORTC, MAGN_KEY_VAC);
     init_machine();
    
   
@@ -135,8 +127,7 @@ int main(void)
   
     while (1) 
     {
-     selar_key();
-     set_Bit(PORTC, MAGN_KEY_VAC);
+      
      set_Bit(PORTB, LED_INIT);
     // Em cada IF verifica qual botão foi pressionado
     if (!test_Bit(PIND, WHIGHT_B1))
@@ -168,9 +159,8 @@ int main(void)
     {
       case 1:
         //
-        //option = 0;
         PORTB |= 0x10; //desliga todos menos o PB4
-        PORTC = 0x00;
+        PORTC = 0x06;
         set_Bit(PORTB, LED_WB1);
         if (!test_Bit(PIND, AND_COURSE)) //testa se o pedal foi acionado
         {
@@ -179,24 +169,24 @@ int main(void)
           set_Bit(PORTC, RESISTENCE); // se sim liga a resistência
           _delay_ms(20);
           exc_vacuo();  // inicia o processo de vácuo
-          proc_selar(TIME_SEL, TIME_SLEEP );
+          proc_selar(20, 10 );
         
           // pisca o lede indicando fim do processo.
           for (int i=0; i<3; i++)
           {
             set_Bit(PORTB, LED_WB1);
-            set_Bit(PORTB, LED_INIT);
             _delay_ms(200);
             clr_Bit(PORTB, LED_WB1);
-            clr_Bit(PORTB, LED_INIT);
             _delay_ms(200);
           }
-          PORTB |= 0x00; //desliga todos
-          PORTC = 0x00;
+          PORTB |= 0x10; //desliga todos menos o PB4
+          PORTC = 0x06;
           _delay_ms(2);
           //while(!test_Bit(PIND, AND_COURSE));
           //asm("JMP 0");
           option = 0;
+          selar_key();
+          set_Bit(PORTC, MAGN_KEY_VAC);
           }
       
           /*else
@@ -204,12 +194,12 @@ int main(void)
             _delay_ms(10000); // se não aguarda 10 segundos e reinicia o processo
             asm("JMP 0"); // Reinicia
           }*/
-            
+         
       break;
     
       case 2:
         PORTB |= 0x10; //desliga todos menos o PB4
-        PORTC = 0x00;
+        PORTC = 0x06;
         set_Bit(PORTB, LED_WB2);
         if (!test_Bit(PIND, AND_COURSE)) //testa se o pedal foi acionado
         {
@@ -218,24 +208,24 @@ int main(void)
           set_Bit(PORTC, RESISTENCE); // se sim liga a resistência
           _delay_ms(20);
           exc_vacuo();  // inicia o processo de vácuo
-          proc_selar(TIME_SEL2, TIME_SLEEP2);
+          proc_selar(5, 5 );
         
           // pisca o lede indicando fim do processo.
           for (int i=0; i<3; i++)
           {
             set_Bit(PORTB, LED_WB2);
-            set_Bit(PORTB, LED_INIT);
             _delay_ms(200);
             clr_Bit(PORTB, LED_WB2);
-            clr_Bit(PORTB, LED_INIT);
             _delay_ms(200);
           }
-          PORTB |= 0x00; //desliga todos menos o PB4
-          PORTC = 0x00;
+          PORTB |= 0x10; //desliga todos menos o PB4
+          PORTC = 0x06;
           _delay_ms(2);
           //while(!test_Bit(PIND, AND_COURSE));
           //asm("JMP 0");
           option = 0;
+          selar_key();
+          set_Bit(PORTC, MAGN_KEY_VAC);
           }
       
           /*else
@@ -249,7 +239,7 @@ int main(void)
     
       case 3:
         PORTB |= 0x10; //desliga todos menos o PB4
-        PORTC = 0x00;
+        PORTC = 0x06;
         set_Bit(PORTB, LED_WB3);
         if (!test_Bit(PIND, AND_COURSE)) //testa se o pedal foi acionado
         {
@@ -258,24 +248,24 @@ int main(void)
           set_Bit(PORTC, RESISTENCE); // se sim liga a resistência
           _delay_ms(20);
           exc_vacuo();  // inicia o processo de vácuo
-          proc_selar(TIME_SEL3, TIME_SLEEP3);
+          proc_selar(3, 3 );
         
           // pisca o lede indicando fim do processo.
           for (int i=0; i<3; i++)
           {
             set_Bit(PORTB, LED_WB3);
-            set_Bit(PORTB, LED_INIT);
             _delay_ms(200);
             clr_Bit(PORTB, LED_WB3);
-            clr_Bit(PORTB, LED_INIT);
             _delay_ms(200);
           }
-          PORTB |= 0x00; //desliga todos menos o PB4
-          PORTC = 0x00;
+          PORTB |= 0x10; //desliga todos menos o PB4
+          PORTC = 0x06;
           _delay_ms(2);
           //while(!test_Bit(PIND, AND_COURSE));
           //asm("JMP 0");
           option = 0;
+          selar_key();
+          set_Bit(PORTC, MAGN_KEY_VAC);
           }
       
          /* else
@@ -288,8 +278,8 @@ int main(void)
       break;
     
       case 4:
-         PORTB |= 0x10; //desliga todos menos o PB4
-        PORTC = 0x00;
+        PORTB |= 0x10; //desliga todos menos o PB4
+        PORTC = 0x06;
         set_Bit(PORTB, LED_WB4);
         if (!test_Bit(PIND, AND_COURSE)) //testa se o pedal foi acionado
         {
@@ -298,24 +288,24 @@ int main(void)
           set_Bit(PORTC, RESISTENCE); // se sim liga a resistência
           _delay_ms(20);
           exc_vacuo();  // inicia o processo de vácuo
-          proc_selar(TIME_SEL4, TIME_SLEEP4);
+          proc_selar(2, 2 );
         
           // pisca o lede indicando fim do processo.
           for (int i=0; i<3; i++)
           {
             set_Bit(PORTB, LED_WB4);
-            set_Bit(PORTB, LED_INIT);
             _delay_ms(200);
             clr_Bit(PORTB, LED_WB4);
-            clr_Bit(PORTB, LED_INIT);
             _delay_ms(200);
           }
-          PORTB |= 0x00; //desliga todos menos o PB4
-          PORTC = 0x00;
+          PORTB |= 0x10; //desliga todos menos o PB4
+          PORTC = 0x06;
           _delay_ms(2);
           //while(!test_Bit(PIND, AND_COURSE));
           //asm("JMP 0");
           option = 0;
+          selar_key();
+          set_Bit(PORTC, MAGN_KEY_VAC);
           }
       
          /* else

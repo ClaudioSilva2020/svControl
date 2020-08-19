@@ -26,9 +26,9 @@
 
 //-------------------------Diretivas de Compilação---------------------------//
 
-#define endereco  0x38 // Endereços comuns: 0x27, 0x3F
-#define colunas   16
-#define linhas    2
+#define ADDRESS  0x38 // Endereços comuns: 0x27, 0x3F
+#define COLUMN   16
+#define ROW    2
 
 //------------------Entrtadas----------------------//
 #define OPTION_UP PD0  //Botão de seleção de peso 1
@@ -59,8 +59,14 @@
 #define TIME_SLEEP4  2
 
 // INSTANCIANDO OBJETOS
-LiquidCrystal_I2C lcd(endereco, colunas, linhas);
-int option;
+LiquidCrystal_I2C lcd(ADDRESS, COLUMN, ROW);
+
+typedef struct
+{
+  int time_uitil_sel;
+  int time_res_off;
+  int time_sleep_end; 
+} Machine;
 
    
 
@@ -110,30 +116,30 @@ void my_delay_ms(int ms)
 }
 
 void exc_vacuo()
-{
-  // testa se tem vacuo
-  if (test_Bit(PIND, VACUOSTAT)) 
   {
-    // se não, seta bomba de vácuo
-    set_Bit(PORTB, PUMP_VACUUM);
-    // testa dentro do if se tem vácuo 
-    while(test_Bit(PIND, VACUOSTAT)); 
-    {
-      // se sim desliga bomba
-      clr_Bit(PORTB, PUMP_VACUUM); 
-    }
-  }
-  else
-  {
-    asm("JMP 0");// REINICIA
-  }
+      // testa se tem vacuo
+      if (test_Bit(PIND, VACUOSTAT)) 
+      {
+      // se não, seta bomba de vácuo
+      set_Bit(PORTB, PUMP_VACUUM);
+      // testa dentro do if se tem vácuo 
+      while(test_Bit(PIND, VACUOSTAT)); 
+      {
+        // se sim desliga bomba
+        clr_Bit(PORTB, PUMP_VACUUM); 
+      }
+      }
+      else
+      {
+        asm("JMP 0");// REINICIA
+      }
 }
 
-void proc_selar(int time_sel, int time_sleep)
+void proc_selar(int time_sel, int time_sleep, int time_to_sel)
 {
   // Libera dulto de vácuo
   clr_Bit(PORTC, MAGN_KEY_VAC); 
-  _delay_ms(500);
+  my_delay_ms(time_to_sel*1000);
   // Avança para selar
   clr_Bit(PORTC, MAGN_KEY_SEL); 
   my_delay_ms(time_sel*1000);
@@ -144,21 +150,19 @@ void proc_selar(int time_sel, int time_sleep)
 
 void selar_key_init()
 {
-  for(int i=0;i<20;i++)
+  for(int i=0;i<10;i++)
   {
     set_Bit(PORTC, MAGN_KEY_VAC);
-    _delay_ms(500);
+    _delay_ms(250);
     // Libera dulto de vácuo
     clr_Bit(PORTC, MAGN_KEY_VAC); 
-    _delay_ms(500);
+    _delay_ms(250);
   }
   set_Bit(PORTC, MAGN_KEY_VAC);
 }
 
 void setup(void)
 {
-    option = 0;
-    
     DDRB = 0xFF; // Definindo Todos os pinos do portB como saída
     DDRC = 0xFF; // Definindo Todos os pinos do portC como Saída
     PORTB = 0x00;//
@@ -171,27 +175,23 @@ void setup(void)
 
 void loop()
 {
-    int on_press;
+     int on_press;
      selar_key();
      set_Bit(PORTC, MAGN_KEY_VAC);
      set_Bit(PORTB, LED_INIT);
-     //Aguarda o botão de menu UP ser precionado
-     while(test_Bit(PIND, OPTION_UP));
-     while(!test_Bit(PIND, OPTION_UP))
+     //se o botão de menu UP for precionado
+     if(!test_Bit(PIND, OPTION_UP))
      {
-        on_press ++;
-        if(on_press == 100)
-        {
-            lcd.clear();
-            // Aguardando comandos
-            lcd.setCursor(0, 0);
-            lcd.print("Menu de Tempos");
-            lcd.setCursor(0, 1);
-            lcd.print("Resistencia ->");         
-        }
+        lcd.clear();
+        // Aguardando comandos
+        lcd.setCursor(0, 0);
+        lcd.print("Menu de Tempos");
+        lcd.setCursor(0, 1);
+        lcd.print("Tempo Selando ->");         
+        // Entra no Menu
+        menu_function();
      }
-     // Entra no Menu
-     menu_function();
+     
 
      
     
@@ -363,4 +363,8 @@ void loop()
         //asm("JMP 0");
     
     }
+}
+void menu_function()
+{
+  
 }

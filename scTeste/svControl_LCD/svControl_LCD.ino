@@ -29,25 +29,27 @@
 #define ADDRESS  0x38 // Endereço do I2C
 #define COLUMN   16
 #define ROW    2
+#define TIME_TO_SEL 250
 
 //--------------------------------------------Entrtadas-----------------------------------------//
-#define OPTION_UP PD0  //Botão de seleção de peso 1
-#define OPTION_DOWN PD1 //Botão de seleção de peso 2
-#define OPTION_LEFT PD2 //Botão de seleção de peso 3
-#define OPTION_RIGHT PD3 //Botão de seleção de peso 4
-#define VACUOSTAT PD4 //Vacuostato
-#define AND_COURSE PD5  //Chave d fim de curso do pedal
+#define OPTION_UP PD6  //Botão de seleção UP
+#define OPTION_DOWN PD5 //Botão de seleção DOWN
+#define OPTION_LEFT PD4 //Botão de seleção LEFT
+#define OPTION_RIGHT PD3 //Botão de seleção RIGHT
+#define VACUOSTAT PB1 //Vacuostato
+#define END_COURSE PB0  //Chave de fim de curso do pedal
+#define AUX_IN PD7
 
 //----------------------------------------------Saídas-------------------------------------------//
-#define AUX_OUT1 PB0     //Led de indicação Peso 1
-#define AUX_OUT2 PB1     //Led de indicação Peso 2
-//#define LED_WB3 PB2     //Led de indicação Peso 3
-//#define LED_WB4 PB3     //Led de indicação Peso 4
-#define LED_INIT PB4    //Led de indicação INICIAL
-#define PUMP_VACUUM PB5   //Contactora da bomba de vácuo
-#define MAGN_KEY_SEL PC2  //Chave magnética de SELAGEM
-#define MAGN_KEY_VAC PC1  //Chave magnética de VÁCUO
-#define RESISTENCE PC0    //Resistência
+#define AUX_OUT1 PD1     //Led de indicação Peso 1
+#define AUX_OUT2 PD2     //Led de indicação Peso 2
+#define MAGN_KEY_COUSE PC1     //Led de indicação Peso 3
+#define RESISTENCE PD0     //Resistência
+//#define LED_INIT PB4    //Led de indicação INICIAL
+#define PUMP_VACUUM PC2   //Contactora da bomba de vácuo
+#define MAGN_KEY_SEL PB2  //Chave magnética de SELAGEM
+#define MAGN_KEY_VAC PC0  //Chave magnética de VÁCUO
+//#define RESISTENCE PC0    //Resistência
 
 
 //-------------------------------------   Protótipos de Função   ---------------------------------
@@ -90,9 +92,10 @@ void setup(void)
 
 
     DDRB = 0xFF; // Definindo Todos os pinos do portB como saída
-    DDRC = 0xFF; // Definindo Todos os pinos do portC como Saída
+    DDRC = 0b11101111; // Definindo Todos os pinos do portC como Saída exceto o 3
+                         // Que será entrada ADC
     PORTB = 0x00;//
-    PORTC = 0x00;//
+    PORTC = 0b00010000;//
     DDRD = 0x00; // Definindo o primeiro nyble do portD como Entrada
     PORTD = 0xFF; //PULL- UP  
     
@@ -118,13 +121,22 @@ void loop()
         lcd.print("Seladora a Vacuo");
         lcd.setCursor(0, 1);
         lcd.print("Aguard. Pedal");
-        while (test_Bit(PIND, AND_COURSE))
-        {
-          /* code */
+        my_delay_ms(200);
+        if (!test_Bit(PINB, END_COURSE))
+        {   
+            //Prende pedal
+            set_Bit(PINC, MAGN_KEY_COUSE);
+            while (!test_Bit(PINB, END_COURSE))
+            {
+                set_Bit(PORTD, RESISTENCE); // se sim liga a resistência
+                _delay_ms(20);
+                exc_vacuo();  // inicia o processo de vácuo
+                proc_selar(parameter.time_uitil_sel, parameter.time_sleep_end, TIME_TO_SEL);
+            }
+            selar_key_init();
         }
         
-    }
-    
+    }  
 }
 
 
@@ -195,16 +207,22 @@ void my_delay_ms(int ms)
 void exc_vacuo(void)
 {
       // testa se tem vacuo
-      if (test_Bit(PIND, VACUOSTAT)) 
+      if (test_Bit(PINB, VACUOSTAT)) 
       {
-      // se não, seta bomba de vácuo
-      set_Bit(PORTB, PUMP_VACUUM);
-      // testa dentro do if se tem vácuo 
-      while(test_Bit(PIND, VACUOSTAT)); 
-      {
-        // se sim desliga bomba
-        clr_Bit(PORTB, PUMP_VACUUM); 
-      }
+          lcd.clear();
+          lcd.print("Seladora a Vacuo");
+          lcd.setCursor(0, 1);
+          lcd.print(" Fazendo Vacuo ");
+          // se não, seta bomba de vácuo
+          set_Bit(PORTC, PUMP_VACUUM);
+          // testa dentro do if se tem vácuo 
+          while(test_Bit(PINB, VACUOSTAT)); 
+          {
+            // se sim desliga bomba
+            lcd.setCursor(0, 1);
+            lcd.print("Desligando Bomba");
+            clr_Bit(PORTC, PUMP_VACUUM); 
+          }
       }
       else
       {
@@ -215,15 +233,22 @@ void exc_vacuo(void)
 // --------------------- De tempos realacionados as esposição á resistência ---------------------
 void proc_selar(int time_sel, int time_sleep, int time_to_sel)
 {
+    lcd.setCursor(0, 1);
+    lcd.print(" Selando Aguarde ");
     // Libera dulto de vácuo
     clr_Bit(PORTC, MAGN_KEY_VAC); 
-    my_delay_ms(time_to_sel*1000);
+    my_delay_ms(time_to_sel);
     // Avança para selar
-    clr_Bit(PORTC, MAGN_KEY_SEL); 
+    clr_Bit(PORTB, MAGN_KEY_SEL); 
     my_delay_ms(time_sel*1000);
+    lcd.setCursor(0, 1);
+    lcd.print(" Resistecia OFF ");
     //desliga resistencia
-    clr_Bit(PORTC, RESISTENCE); 
+    clr_Bit(PORTD, RESISTENCE); 
     my_delay_ms(time_sleep*1000);
+    clr_Bit(PINC, MAGN_KEY_COUSE);
+    lcd.setCursor(0, 1);
+    lcd.print("   Finalizado   ");
 }
 // -------------------------- Função para centralizar a chave magnética -------------------------
 void selar_key_init()

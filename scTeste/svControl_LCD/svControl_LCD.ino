@@ -69,9 +69,9 @@ String msg_monitor [2] [2] = {{"Ajuste de tempo","tseg-Selagem:"},{"Ajuste de Te
 // Estrutura da máquina com os atributos de tempo
 typedef struct
 {
-  int time_uitil_sel;
-  int time_res_off;
-  int time_sleep_end; 
+  unsigned int time_uitil_sel;
+  unsigned int time_res_off;
+  unsigned int time_sleep_end; 
 } Machine;
 
 int on_press = 0;
@@ -284,6 +284,10 @@ void msg_tsel(void)
           parameter.time_uitil_sel++;
           lcd.setCursor(14, 1);
           lcd.print(parameter.time_uitil_sel);
+          if(parameter.time_sleep_sel==60)
+          {
+              parameter.time_sleep_sel = 0;
+          }
         }else if (!test_Bit(PIND, OPTION_LEFT))
         {
           while (!test_Bit(PIND, OPTION_LEFT));
@@ -291,6 +295,10 @@ void msg_tsel(void)
           parameter.time_uitil_sel--;
           lcd.setCursor(14, 1);
           lcd.print(parameter.time_uitil_sel);
+          if(parameter.time_sleep_sel<0)
+          {
+              parameter.time_sleep_sel = 60;
+          }   
         }
     }
 }
@@ -315,7 +323,11 @@ void msg_tesfriar(void)
             my_delay_ms(20);
             parameter.time_sleep_end++;
             lcd.setCursor(14, 1);
-            lcd.print(parameter.time_sleep_end);   
+            lcd.print(parameter.time_sleep_end);
+            if(parameter.time_sleep_end==60)
+            {
+                parameter.time_sleep_end = 0;
+            }   
         }
         else if (!test_Bit(PIND, OPTION_LEFT))
         {
@@ -324,6 +336,10 @@ void msg_tesfriar(void)
             parameter.time_sleep_end--;
             lcd.setCursor(14, 1);
             lcd.print(parameter.time_sleep_end);
+            if(parameter.time_sleep_end<0)
+            {
+                parameter.time_sleep_end = 60;
+            }
         }
       on_press = 3;
     }  

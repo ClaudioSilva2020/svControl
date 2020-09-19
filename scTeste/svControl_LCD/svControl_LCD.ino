@@ -45,7 +45,7 @@
 #define AUX_OUT2 PD2     //Led de indicação Peso 2
 #define MAGN_KEY_COUSE PC1     //Led de indicação Peso 3
 #define RESISTENCE PD0     //Resistência
-//#define LED_INIT PB4    //Led de indicação INICIAL
+#define LED_INIT PB4    //Led de indicação INICIAL
 #define PUMP_VACUUM PC2   //Contactora da bomba de vácuo
 #define MAGN_KEY_SEL PB2  //Chave magnética de SELAGEM
 #define MAGN_KEY_VAC PC0  //Chave magnética de VÁCUO
@@ -284,9 +284,9 @@ void msg_tsel(void)
           parameter.time_uitil_sel++;
           lcd.setCursor(14, 1);
           lcd.print(parameter.time_uitil_sel);
-          if(parameter.time_sleep_sel==60)
+          if(parameter.time_uitil_sel==60)
           {
-              parameter.time_sleep_sel = 0;
+              parameter.time_uitil_sel = 0;
           }
         }else if (!test_Bit(PIND, OPTION_LEFT))
         {
@@ -295,9 +295,9 @@ void msg_tsel(void)
           parameter.time_uitil_sel--;
           lcd.setCursor(14, 1);
           lcd.print(parameter.time_uitil_sel);
-          if(parameter.time_sleep_sel<0)
+          if(parameter.time_uitil_sel<0)
           {
-              parameter.time_sleep_sel = 60;
+              parameter.time_uitil_sel = 60;
           }   
         }
     }
